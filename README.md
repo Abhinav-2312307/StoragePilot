@@ -8,6 +8,12 @@ StoragePilot is a professional-grade Android application designed to give users 
 
 ---
 
+## 📥 Download
+
+**[Download the latest StoragePilot APK](https://github.com/Abhinav-2312307/StoragePilot/raw/main/apk/StoragePilot.apk)**
+
+---
+
 ## ✨ Key Features
 
 ### 🗺️ Interactive 2D System Flowchart
@@ -66,23 +72,7 @@ graph TD;
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
-- Android Studio (Iguana or later recommended)
-- Minimum SDK: Android 8.0 (API 26)
-- Target SDK: Android 14 (API 34)
-
-### Building the Project
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/StoragePilot.git
-   ```
-2. Open the project in Android Studio.
-3. Sync the Gradle files.
-4. Run the project on a physical device or emulator.
-
-*Note: For full SystemIntel features, you must install the [Shizuku App](https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api) on your device and activate it via Wireless Debugging.*
+## 👨‍💻 Developed By
 
 ---
 
