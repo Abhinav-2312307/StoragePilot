@@ -173,55 +173,98 @@ Configurable preferences persisted via DataStore.
 
 StoragePilot follows **Clean Architecture** with the MVVM presentation pattern, enforced through Dagger Hilt dependency injection.
 
+### Layer Overview
+
 ```mermaid
-graph TB
-    subgraph Presentation["🖥️ Presentation Layer"]
+graph TD
+    UI["🖥️ Presentation Layer\n(Compose Screens + ViewModels)"]
+    DOMAIN["⚡ Domain Layer\n(Use Cases + Repository Interfaces)"]
+    DATA["💾 Data Layer\n(Repositories + Scanners + Room DB)"]
+
+    UI -->|"calls"| DOMAIN
+    DOMAIN -->|"abstracts"| DATA
+```
+
+### Presentation Layer — 11 Feature Modules
+
+```mermaid
+graph LR
+    subgraph Screens
         direction TB
-        A1[DashboardScreen] --> A2[DashboardViewModel]
-        B1[ExplorerScreen] --> B2[ExplorerViewModel]
-        C1[SwipeCleanupScreen] --> C2[SwipeCleanupViewModel]
-        D1[AnalyticsScreen] --> D2[AnalyticsViewModel]
-        E1[SystemFlowchartScreen] --> E2[SystemFlowchartViewModel]
-        F1[DuplicatesScreen] --> F2[DuplicatesViewModel]
-        G1[LargeFilesScreen] --> G2[LargeFilesViewModel]
-        H1[HiddenStorageScreen] --> H2[HiddenStorageViewModel]
-        I1[AppAnalyzerScreen] --> I2[AppAnalyzerViewModel]
-        J1[RecycleBinScreen] --> J2[RecycleBinViewModel]
-        K1[SearchScreen] --> K2[SearchViewModel]
+        S1["🏠 Dashboard"]
+        S2["📂 Explorer"]
+        S3["🔥 Swipe Cleanup"]
+        S4["📊 Analytics"]
+        S5["🗺️ Flowchart"]
+        S6["🔍 Duplicates"]
+        S7["📦 Large Files"]
+        S8["👁️ Hidden Storage"]
+        S9["📱 App Analyzer"]
+        S10["♻️ Recycle Bin"]
+        S11["🔎 Search"]
     end
 
-    subgraph Domain["⚡ Domain Layer"]
+    subgraph ViewModels
         direction TB
-        U1[ScanStorageUseCase]
-        U2[GetStorageReportUseCase]
-        U3[DeleteFilesUseCase]
-        U4[DetectDuplicatesUseCase]
-        U5[GetLargeFilesUseCase]
-        U6[SearchFilesUseCase]
-        U7[RestoreFilesUseCase]
-        U8[AnalyzeAppsUseCase]
+        V1["DashboardVM"]
+        V2["ExplorerVM"]
+        V3["SwipeCleanupVM"]
+        V4["AnalyticsVM"]
+        V5["FlowchartVM"]
+        V6["DuplicatesVM"]
+        V7["LargeFilesVM"]
+        V8["HiddenStorageVM"]
+        V9["AppAnalyzerVM"]
+        V10["RecycleBinVM"]
+        V11["SearchVM"]
     end
 
-    subgraph Data["💾 Data Layer"]
-        direction TB
-        R1[FileRepositoryImpl]
-        R2[AppStorageRepositoryImpl]
-        R3[RecycleBinRepositoryImpl]
-        R4[CleanupStatsRepositoryImpl]
-        S1[StorageScanner]
-        S2[MediaStoreScanner]
-        S3[FileSystemScanner]
-        S4[DuplicateDetector]
-        DB[(Room Database)]
-        DS[(DataStore)]
-    end
+    S1 --> V1
+    S2 --> V2
+    S3 --> V3
+    S4 --> V4
+    S5 --> V5
+    S6 --> V6
+    S7 --> V7
+    S8 --> V8
+    S9 --> V9
+    S10 --> V10
+    S11 --> V11
+```
 
-    A2 & B2 & C2 & D2 & E2 & F2 & G2 & H2 & I2 & J2 & K2 --> U1 & U2 & U3 & U4 & U5 & U6 & U7 & U8
-    U1 & U2 & U3 & U4 & U5 & U6 & U7 & U8 --> R1 & R2 & R3 & R4
-    R1 --> S1
-    S1 --> S2 & S3 & S4
-    R1 & R3 & R4 --> DB
-    R2 --> DS
+### Domain Layer — Use Cases
+
+```mermaid
+graph LR
+    UC1["ScanStorageUseCase"]
+    UC2["GetStorageReportUseCase"]
+    UC3["DeleteFilesUseCase"]
+    UC4["DetectDuplicatesUseCase"]
+    UC5["GetLargeFilesUseCase"]
+    UC6["SearchFilesUseCase"]
+    UC7["RestoreFilesUseCase"]
+    UC8["AnalyzeAppsUseCase"]
+
+    UC1 & UC2 & UC3 & UC5 & UC6 --> FR["FileRepository"]
+    UC4 --> FR
+    UC7 --> RR["RecycleBinRepository"]
+    UC3 --> RR
+    UC8 --> AR["AppStorageRepository"]
+```
+
+### Data Layer — Infrastructure
+
+```mermaid
+graph TD
+    FR["FileRepositoryImpl"] --> SC["StorageScanner"]
+    SC --> MS["MediaStoreScanner\n(fast, indexed media)"]
+    SC --> FS["FileSystemScanner\n(thorough, non-indexed)"]
+    SC --> DD["DuplicateDetector\n(MD5 hashing)"]
+
+    FR --> DB[("Room\nDatabase")]
+    RR["RecycleBinRepositoryImpl"] --> DB
+    CR["CleanupStatsRepositoryImpl"] --> DB
+    AR["AppStorageRepositoryImpl"] --> DS[("DataStore\nPreferences")]
 ```
 
 ---
