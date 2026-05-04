@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">StoragePilot</string>
+    <string name="scan_channel_name">Storage Scanning</string>
+    <string name="scan_channel_desc">Shows progress during storage scanning</string>
+</resources>
