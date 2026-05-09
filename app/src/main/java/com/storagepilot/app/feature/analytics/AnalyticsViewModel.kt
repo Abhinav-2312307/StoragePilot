@@ -60,7 +60,8 @@ class AnalyticsViewModel @Inject constructor(
 
     private fun loadDeviceStorage() {
         try {
-            val stat = StatFs(Environment.getExternalStorageDirectory().path)
+            // Use getDataDirectory() to match Dashboard's calculation for consistency
+            val stat = StatFs(Environment.getDataDirectory().path)
             val total = stat.totalBytes
             val free = stat.availableBytes
             _uiState.update {

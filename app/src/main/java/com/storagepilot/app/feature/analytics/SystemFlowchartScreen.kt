@@ -1,8 +1,5 @@
 package com.storagepilot.app.feature.analytics
 
-import android.content.Intent
-import android.net.Uri
-import android.provider.DocumentsContract
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.*
@@ -104,24 +101,7 @@ fun SystemFlowchartScreen(
                                     if (!clickedNode.isFolder) {
                                         IntentUtils.openFile(context, clickedNode.id)
                                     } else {
-                                        try {
-                                            // Open folder using generic Intent
-                                            val uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3A${clickedNode.id.removePrefix("/storage/emulated/0/")}")
-                                            val intent = Intent(Intent.ACTION_VIEW).apply {
-                                                setDataAndType(uri, "vnd.android.document/directory")
-                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                            }
-                                            context.startActivity(intent)
-                                        } catch (e: Exception) {
-                                            // Fallback
-                                            try {
-                                                val fallbackUri = Uri.parse("file://${clickedNode.id}")
-                                                val intent = Intent(Intent.ACTION_VIEW).apply {
-                                                    setDataAndType(fallbackUri, "resource/folder")
-                                                }
-                                                context.startActivity(intent)
-                                            } catch (e2: Exception) {}
-                                        }
+                                        IntentUtils.openFolder(context, clickedNode.id)
                                     }
                                 }
                             },

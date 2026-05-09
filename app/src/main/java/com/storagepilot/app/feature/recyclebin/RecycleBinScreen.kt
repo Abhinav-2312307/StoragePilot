@@ -133,7 +133,7 @@ fun RecycleBinScreen(
                             onRestore = { viewModel.restoreItem(item) },
                             onPermanentlyDelete = { viewModel.permanentlyDeleteItem(item) },
                         )
-                        Divider(color = MaterialTheme.colorScheme.surfaceVariant)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     }
                 }
             }

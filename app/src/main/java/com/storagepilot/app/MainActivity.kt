@@ -74,19 +74,13 @@ private fun StoragePilotMainScreen() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // Show bottom bar on primary tabs
+    // Show bottom bar only on primary tabs
     val showBottomBar = remember(currentDestination) {
         val route = currentDestination?.route ?: return@remember true
         route.contains("Dashboard") || 
         route.contains("Explorer") || 
         route.contains("SwipeCleanup") || 
-        route.contains("Analytics") ||
-        route.contains("AppAnalyzer") ||
-        route.contains("LargeFiles") ||
-        route.contains("Duplicates") ||
-        route.contains("HiddenStorage") ||
-        route.contains("Search") ||
-        route.contains("AppFiles")
+        route.contains("Analytics")
     }
 
     Scaffold(

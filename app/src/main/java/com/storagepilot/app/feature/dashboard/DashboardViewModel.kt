@@ -9,6 +9,7 @@ import com.storagepilot.app.domain.model.ScannedFile
 import com.storagepilot.app.domain.usecase.GetStorageReportUseCase
 import com.storagepilot.app.domain.usecase.ScanStorageUseCase
 import com.storagepilot.app.domain.usecase.AnalyzeAppsUseCase
+import com.storagepilot.app.domain.repository.ScanRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -24,6 +25,7 @@ data class DashboardUiState(
     val largestFiles: List<ScannedFile> = emptyList(),
     val isScanning: Boolean = false,
     val hasScanned: Boolean = false,
+    val lastScanTime: Long? = null,
 )
 
 @HiltViewModel
@@ -31,6 +33,7 @@ class DashboardViewModel @Inject constructor(
     private val getStorageReportUseCase: GetStorageReportUseCase,
     private val scanStorageUseCase: ScanStorageUseCase,
     private val analyzeAppsUseCase: AnalyzeAppsUseCase,
+    private val scanRepository: ScanRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
@@ -40,6 +43,7 @@ class DashboardViewModel @Inject constructor(
         loadDeviceStorage()
         observeIndex()
         observeScanState()
+        observeLastScanTime()
     }
 
     private fun loadDeviceStorage() {
@@ -139,6 +143,14 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             scanStorageUseCase.startFullScan()
             loadDeviceStorage() // Refresh after scan
+        }
+    }
+
+    private fun observeLastScanTime() {
+        viewModelScope.launch {
+            scanRepository.getLastScanTime().collect { time ->
+                _uiState.update { it.copy(lastScanTime = time) }
+            }
         }
     }
 }

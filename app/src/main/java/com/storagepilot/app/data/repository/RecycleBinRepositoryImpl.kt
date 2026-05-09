@@ -1,14 +1,18 @@
 package com.storagepilot.app.data.repository
 
 import android.os.Environment
+import com.storagepilot.app.data.local.dao.FileIndexDao
 import com.storagepilot.app.data.local.dao.RecycleBinDao
+import com.storagepilot.app.data.local.entity.FileIndexEntity
 import com.storagepilot.app.data.local.entity.RecycleBinEntity
+import com.storagepilot.app.data.preferences.UserPreferences
 import com.storagepilot.app.domain.model.FileCategory
 import com.storagepilot.app.domain.model.RecycleBinItem
 import com.storagepilot.app.domain.model.ScannedFile
 import com.storagepilot.app.domain.repository.RecycleBinRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -19,11 +23,12 @@ import javax.inject.Singleton
 @Singleton
 class RecycleBinRepositoryImpl @Inject constructor(
     private val recycleBinDao: RecycleBinDao,
+    private val fileIndexDao: FileIndexDao,
+    private val userPreferences: UserPreferences,
 ) : RecycleBinRepository {
 
     companion object {
         private const val RECYCLE_DIR = ".StoragePilot_Recycle"
-        private val AUTO_DELETE_DAYS = 30L
     }
 
     private val recycleBinDir: File by lazy {
@@ -37,6 +42,7 @@ class RecycleBinRepositoryImpl @Inject constructor(
 
     override suspend fun moveToRecycleBin(files: List<ScannedFile>) {
         withContext(Dispatchers.IO) {
+            val movedPaths = mutableListOf<String>()
             val entities = files.mapNotNull { file ->
                 val sourceFile = File(file.path)
                 if (!sourceFile.exists()) return@mapNotNull null
@@ -45,17 +51,26 @@ class RecycleBinRepositoryImpl @Inject constructor(
                 val moved = sourceFile.renameTo(destFile)
                 if (!moved) return@mapNotNull null
 
+                movedPaths.add(file.path)
+
+                // Read auto-delete days from user preferences
+                val autoDeleteDays = userPreferences.recycleBinDays.first().toLong()
+
                 RecycleBinEntity(
                     originalPath = file.path,
                     recyclePath = destFile.absolutePath,
                     name = file.name,
                     sizeBytes = file.sizeBytes,
                     deletedAt = System.currentTimeMillis(),
-                    autoDeleteAt = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(AUTO_DELETE_DAYS),
+                    autoDeleteAt = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(autoDeleteDays),
                     category = file.category.name,
                 )
             }
             recycleBinDao.insertAll(entities)
+            // Remove deleted files from the file index so they don't appear as ghost entries
+            if (movedPaths.isNotEmpty()) {
+                fileIndexDao.deleteByPaths(movedPaths)
+            }
         }
     }
 
@@ -66,7 +81,25 @@ class RecycleBinRepositoryImpl @Inject constructor(
                 val recycledFile = File(item.recyclePath)
                 val originalFile = File(item.originalPath)
                 originalFile.parentFile?.mkdirs()
-                recycledFile.renameTo(originalFile)
+                val restored = recycledFile.renameTo(originalFile)
+                // Re-add to file index so it shows up in Explorer again
+                if (restored && originalFile.exists()) {
+                    val category = try { FileCategory.valueOf(item.category) } catch (_: Exception) { FileCategory.OTHER }
+                    fileIndexDao.insert(
+                        FileIndexEntity(
+                            path = item.originalPath,
+                            name = item.name,
+                            extension = item.name.substringAfterLast('.', ""),
+                            mimeType = "",
+                            sizeBytes = item.sizeBytes,
+                            createdAt = originalFile.lastModified(),
+                            modifiedAt = originalFile.lastModified(),
+                            category = category.name,
+                            parentFolder = originalFile.parent ?: "",
+                            isHidden = item.name.startsWith("."),
+                        )
+                    )
+                }
             }
             recycleBinDao.deleteByIds(itemIds)
         }

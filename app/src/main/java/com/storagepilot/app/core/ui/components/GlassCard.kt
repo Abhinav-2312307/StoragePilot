@@ -20,7 +20,6 @@ import com.storagepilot.app.core.theme.GlassWhite
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
-    glowColor: Color? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val shape = MaterialTheme.shapes.large

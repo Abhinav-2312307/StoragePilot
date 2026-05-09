@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface Route {
     @Serializable data object Dashboard : Route
-    @Serializable data object Explorer : Route
+    @Serializable data class Explorer(val initialCategory: String? = null) : Route
     @Serializable data object SwipeCleanup : Route
     @Serializable data object Analytics : Route
     @Serializable data object Scan : Route
@@ -21,4 +21,7 @@ sealed interface Route {
     @Serializable data class AppFiles(val packageName: String, val appName: String) : Route
     @Serializable data object SystemFlowchart : Route
     @Serializable data object Settings : Route
+    @Serializable data class VideoPlayer(val filePath: String) : Route
+    @Serializable data class DocumentViewer(val filePath: String) : Route
+    @Serializable data class ImageViewer(val filePath: String) : Route
 }

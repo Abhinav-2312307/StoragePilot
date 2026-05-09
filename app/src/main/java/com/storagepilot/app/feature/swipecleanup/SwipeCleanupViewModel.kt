@@ -28,7 +28,7 @@ data class FileGroup(
     val files: List<ScannedFile>,
     val previewPath: String,
     val totalCount: Int,
-    var reviewedCount: Int = 0
+    val reviewedCount: Int = 0
 )
 
 data class SwipeCleanupUiState(
@@ -209,6 +209,7 @@ class SwipeCleanupViewModel @Inject constructor(
                 markedForDeletion = newMarked,
                 currentIndex = it.currentIndex + 1,
                 deletedCount = newMarked.size,
+                deletedBytes = it.deletedBytes + file.sizeBytes,
                 lastDeletedFile = file,
             )
         }
@@ -249,13 +250,21 @@ class SwipeCleanupViewModel @Inject constructor(
     }
 
     private fun updateGroupProgress() {
-        val state = _uiState.value
-        state.selectedGroup?.reviewedCount = state.currentIndex
+        _uiState.update { state ->
+            val updatedGroup = state.selectedGroup?.copy(reviewedCount = state.currentIndex)
+            state.copy(selectedGroup = updatedGroup)
+        }
     }
 
     fun undoLastDelete() {
+        val state = _uiState.value
+        val lastFile = state.lastDeletedFile ?: return
         _uiState.update {
+            val newMarked = it.markedForDeletion - lastFile.path
             it.copy(
+                markedForDeletion = newMarked,
+                deletedCount = newMarked.size,
+                deletedBytes = (it.deletedBytes - lastFile.sizeBytes).coerceAtLeast(0),
                 lastDeletedFile = null,
                 currentIndex = maxOf(0, it.currentIndex - 1)
             )

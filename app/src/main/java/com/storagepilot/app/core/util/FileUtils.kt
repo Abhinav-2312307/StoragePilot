@@ -124,3 +124,27 @@ fun isHiddenPath(path: String): Boolean {
 fun getParentFolder(path: String): String {
     return File(path).parent ?: "/"
 }
+
+/**
+ * Formats a timestamp as a relative time string (e.g., "2 hours ago", "3 days ago").
+ */
+fun Long.formatRelativeTime(): String {
+    val now = System.currentTimeMillis()
+    val diff = now - this
+    return when {
+        diff < TimeUnit.MINUTES.toMillis(1) -> "Just now"
+        diff < TimeUnit.HOURS.toMillis(1) -> {
+            val mins = TimeUnit.MILLISECONDS.toMinutes(diff)
+            "$mins min${if (mins > 1) "s" else ""} ago"
+        }
+        diff < TimeUnit.DAYS.toMillis(1) -> {
+            val hours = TimeUnit.MILLISECONDS.toHours(diff)
+            "$hours hour${if (hours > 1) "s" else ""} ago"
+        }
+        diff < TimeUnit.DAYS.toMillis(7) -> {
+            val days = TimeUnit.MILLISECONDS.toDays(diff)
+            "$days day${if (days > 1) "s" else ""} ago"
+        }
+        else -> formatDate()
+    }
+}

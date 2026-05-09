@@ -21,6 +21,7 @@ import com.storagepilot.app.core.theme.*
 import com.storagepilot.app.core.ui.components.*
 import com.storagepilot.app.core.util.formatFileSize
 import com.storagepilot.app.core.util.formatPercent
+import com.storagepilot.app.core.util.formatRelativeTime
 import com.storagepilot.app.domain.model.FileCategory
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,6 +72,13 @@ fun DashboardScreen(
                         text = "Offline · Private · Local Only",
                         style = MaterialTheme.typography.labelSmall,
                         color = AccentGreen,
+                    )
+                }
+                state.lastScanTime?.let { scanTime ->
+                    Text(
+                        text = "Last scan: ${scanTime.formatRelativeTime()}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }

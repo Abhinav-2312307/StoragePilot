@@ -23,7 +23,7 @@ val bottomNavItems = listOf(
         unselectedIcon = Icons.Outlined.Dashboard,
     ),
     BottomNavItem(
-        route = Route.Explorer,
+        route = Route.Explorer(),
         label = "Files",
         selectedIcon = Icons.Filled.Folder,
         unselectedIcon = Icons.Outlined.Folder,

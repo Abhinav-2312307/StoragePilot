@@ -2,22 +2,51 @@ package com.storagepilot.app.navigation
 
 import androidx.compose.animation.*
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
+import com.storagepilot.app.core.util.IntentUtils
 import com.storagepilot.app.feature.analytics.AnalyticsScreen
 import com.storagepilot.app.feature.dashboard.DashboardScreen
+import com.storagepilot.app.feature.explorer.DocumentViewerScreen
+import com.storagepilot.app.feature.explorer.ExplorerScreen
+import com.storagepilot.app.feature.explorer.ImageViewerScreen
+import com.storagepilot.app.feature.explorer.VideoPlayerScreen
 import com.storagepilot.app.feature.scan.ScanScreen
 import com.storagepilot.app.feature.swipecleanup.SwipeCleanupScreen
+
+/**
+ * Helper function for smart file routing used across multiple screens.
+ * Routes to in-app viewers for supported formats, external apps for others.
+ */
+private fun handleFileOpen(
+    path: String,
+    navController: NavHostController,
+    context: android.content.Context,
+) {
+    when (IntentUtils.getFileOpenAction(path)) {
+        IntentUtils.FileOpenAction.VIDEO_PLAYER ->
+            navController.navigate(Route.VideoPlayer(path))
+        IntentUtils.FileOpenAction.PDF_VIEWER ->
+            navController.navigate(Route.DocumentViewer(path))
+        IntentUtils.FileOpenAction.TEXT_VIEWER ->
+            navController.navigate(Route.DocumentViewer(path))
+        IntentUtils.FileOpenAction.IMAGE_VIEWER ->
+            navController.navigate(Route.ImageViewer(path))
+        IntentUtils.FileOpenAction.EXTERNAL ->
+            IntentUtils.openFile(context, path)
+    }
+}
 
 @Composable
 fun StoragePilotNavGraph(
     navController: NavHostController,
     modifier: Modifier = Modifier,
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
 
     NavHost(
         navController = navController,
@@ -30,8 +59,8 @@ fun StoragePilotNavGraph(
             DashboardScreen(
                 onNavigateToScan = { navController.navigate(Route.Scan) },
                 onNavigateToCategory = { category ->
-                    // For now, route to Explorer. Phase 2 refinement later.
-                    navController.navigate(Route.Explorer)
+                    // Pass the category to Explorer so it opens pre-filtered
+                    navController.navigate(Route.Explorer(initialCategory = category.name))
                 },
                 onNavigateToLargeFiles = { navController.navigate(Route.LargeFiles) },
                 onNavigateToDuplicates = { navController.navigate(Route.Duplicates) },
@@ -44,10 +73,16 @@ fun StoragePilotNavGraph(
         }
 
         composable<Route.Explorer> {
-            com.storagepilot.app.feature.explorer.ExplorerScreen(
-                onNavigateToViewer = { path ->
-                    com.storagepilot.app.core.util.IntentUtils.openFile(context, path)
-                }
+            ExplorerScreen(
+                onNavigateToVideoPlayer = { path ->
+                    navController.navigate(Route.VideoPlayer(path))
+                },
+                onNavigateToDocumentViewer = { path ->
+                    navController.navigate(Route.DocumentViewer(path))
+                },
+                onNavigateToImageViewer = { path ->
+                    navController.navigate(Route.ImageViewer(path))
+                },
             )
         }
 
@@ -68,18 +103,14 @@ fun StoragePilotNavGraph(
         composable<Route.Duplicates> {
             com.storagepilot.app.feature.duplicates.DuplicatesScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToViewer = { path ->
-                    com.storagepilot.app.core.util.IntentUtils.openFile(context, path)
-                }
+                onNavigateToViewer = { path -> handleFileOpen(path, navController, context) }
             )
         }
 
         composable<Route.LargeFiles> {
             com.storagepilot.app.feature.largefiles.LargeFilesScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToViewer = { path ->
-                    com.storagepilot.app.core.util.IntentUtils.openFile(context, path)
-                }
+                onNavigateToViewer = { path -> handleFileOpen(path, navController, context) }
             )
         }
 
@@ -95,9 +126,7 @@ fun StoragePilotNavGraph(
         composable<Route.HiddenStorage> {
             com.storagepilot.app.feature.hidden.HiddenStorageScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToViewer = { path ->
-                    com.storagepilot.app.core.util.IntentUtils.openFile(context, path)
-                }
+                onNavigateToViewer = { path -> handleFileOpen(path, navController, context) }
             )
         }
 
@@ -110,9 +139,7 @@ fun StoragePilotNavGraph(
         composable<Route.Search> {
             com.storagepilot.app.feature.search.SearchScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToViewer = { path ->
-                    com.storagepilot.app.core.util.IntentUtils.openFile(context, path)
-                }
+                onNavigateToViewer = { path -> handleFileOpen(path, navController, context) }
             )
         }
 
@@ -133,21 +160,33 @@ fun StoragePilotNavGraph(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+
+        // ═══════════════════════════════════════
+        // In-App Viewer Routes
+        // ═══════════════════════════════════════
+
+        composable<Route.VideoPlayer> { backStackEntry ->
+            val args = backStackEntry.toRoute<Route.VideoPlayer>()
+            VideoPlayerScreen(
+                filePath = args.filePath,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<Route.DocumentViewer> { backStackEntry ->
+            val args = backStackEntry.toRoute<Route.DocumentViewer>()
+            DocumentViewerScreen(
+                filePath = args.filePath,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<Route.ImageViewer> { backStackEntry ->
+            val args = backStackEntry.toRoute<Route.ImageViewer>()
+            ImageViewerScreen(
+                filePath = args.filePath,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
     }
 }
-
-@Composable
-private fun PlaceholderScreen(title: String) {
-    androidx.compose.foundation.layout.Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = androidx.compose.ui.Alignment.Center,
-    ) {
-        androidx.compose.material3.Text(
-            text = title,
-            style = androidx.compose.material3.MaterialTheme.typography.headlineMedium,
-            color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground,
-        )
-    }
-}
-
-

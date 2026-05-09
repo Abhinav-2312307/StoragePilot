@@ -61,7 +61,7 @@ fun SettingsScreen(
                 onCheckedChange = { viewModel.updateShowHiddenFiles(it) }
             )
 
-            Divider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
 
             SettingsCategory("Recycle Bin")
             SettingsDropdownRow(
@@ -73,7 +73,7 @@ fun SettingsScreen(
                 onSelect = { viewModel.updateRecycleBinDays(it) }
             )
 
-            Divider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
 
             SettingsCategory("Developer")
             SettingsActionRow(
@@ -86,7 +86,7 @@ fun SettingsScreen(
                 }
             )
 
-            Divider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
 
             SettingsCategory("About")
             SettingsActionRow(

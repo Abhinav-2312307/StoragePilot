@@ -1,7 +1,5 @@
 package com.storagepilot.app.feature.swipecleanup
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -28,13 +26,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.storagepilot.app.core.theme.*
 import com.storagepilot.app.core.ui.components.GlassCard
+import com.storagepilot.app.core.util.IntentUtils
 import com.storagepilot.app.core.util.formatDate
 import com.storagepilot.app.core.util.formatFileSize
 import com.storagepilot.app.domain.model.ScannedFile
@@ -381,28 +379,11 @@ private fun SwipeSessionScreen(
                 onSwipeLeft = { viewModel.swipeLeft() },
                 onSwipeRight = { viewModel.swipeRight() },
                 onOpen = {
-                    try {
-                        val file = File(currentFile.path)
-                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            setDataAndType(uri, currentFile.mimeType)
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-                        val chooser = Intent.createChooser(intent, "Open with...")
-                        context.startActivity(chooser)
-                    } catch (e: Exception) {
-                        // Handle gracefully or fallback
-                    }
+                    IntentUtils.openFile(context, currentFile.path)
                 },
                 onLocate = {
-                    try {
-                        val file = File(currentFile.path)
-                        val uri = Uri.parse(file.parent)
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            setDataAndType(uri, "*/*")
-                        }
-                        context.startActivity(intent)
-                    } catch (e: Exception) {}
+                    val file = File(currentFile.path)
+                    IntentUtils.openFolder(context, file.parent ?: "")
                 },
                 modifier = Modifier.fillMaxWidth().weight(1f),
             )

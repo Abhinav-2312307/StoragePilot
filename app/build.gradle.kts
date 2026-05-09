@@ -114,6 +114,11 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.video)
 
+    // Media3 (ExoPlayer) — In-App Video Player
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.session)
+
     // Google Fonts
     implementation(libs.compose.google.fonts)
 }

@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.*
+import com.storagepilot.app.domain.model.ScannedFile
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +31,7 @@ fun HiddenStorageScreen(
     viewModel: HiddenStorageViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var fileToDelete by remember { mutableStateOf<ScannedFile?>(null) }
 
     Scaffold(
         topBar = {
@@ -120,7 +122,7 @@ fun HiddenStorageScreen(
                                 )
                             }
                             IconButton(
-                                onClick = { viewModel.deleteFile(file) },
+                                onClick = { fileToDelete = file },
                                 modifier = Modifier.padding(end = 16.dp),
                             ) {
                                 Icon(
@@ -130,10 +132,35 @@ fun HiddenStorageScreen(
                                 )
                             }
                         }
-                        Divider(color = MaterialTheme.colorScheme.surfaceVariant)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     }
                 }
             }
+        }
+
+        // Delete confirmation dialog
+        fileToDelete?.let { file ->
+            AlertDialog(
+                onDismissRequest = { fileToDelete = null },
+                title = { Text("Delete File?") },
+                text = { Text("Move \"${file.name}\" to the Recycle Bin?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteFile(file)
+                            fileToDelete = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentRed)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { fileToDelete = null }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }

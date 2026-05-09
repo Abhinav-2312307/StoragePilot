@@ -75,14 +75,21 @@ fun SearchScreen(
             ),
         )
 
-        // Filter Chips
+        // Filter Chips — only show browsable categories
+        val browsableCategories = remember {
+            listOf(
+                FileCategory.IMAGES, FileCategory.VIDEOS, FileCategory.AUDIO,
+                FileCategory.DOCUMENTS, FileCategory.APPS, FileCategory.ARCHIVES,
+                FileCategory.DOWNLOADS, FileCategory.OTHER,
+            )
+        }
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(FileCategory.values()) { category ->
+            items(browsableCategories) { category ->
                 FilterChip(
                     selected = state.selectedCategory == category,
                     onClick = { 
